@@ -28,6 +28,10 @@ contract Lottery {
         return 1;
     }
 
+    function getPlayers() public view returns (address[] memory) {
+        return players;
+    }
+
     function randomGenerator() public view returns (uint256) {
         return
             uint256(
