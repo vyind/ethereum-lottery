@@ -27,12 +27,74 @@ describe("Lottery", () => {
 	it("can deploy a contract", () => {
 		assert.ok(lottery.options.address);
 	});
-	it("has a manager address", async () => {
-		const manager = await lottery.methods.manager().call();
-		assert.ok(manager);
+	describe("Manager", () => {
+		it("has an address", async () => {
+			const manager = await lottery.methods.manager().call();
+			assert.ok(manager);
+		});
+		it("is deployer", async () => {
+			const manager = await lottery.methods.manager().call();
+			assert.equal(manager, accounts[0]);
+		});
+		it("cannot pick winner if no player has entered", async () => {
+			try {
+				await lottery.methods.pickWinner().send({ from: accounts[0] });
+			} catch (err) {
+				assert(true);
+			}
+		});
+		it("cannot send money if no player has entered", async () => {
+			try {
+				await lottery.methods.sendMoney(accounts[3]).send({ from: accounts[0] });
+			} catch (err) {
+				assert(true);
+			}
+		});
+		it("can pick winner", async () => {
+			await lottery.methods.enter().send({
+				from: accounts[1],
+				value: "10000"
+			});
+			const winner = await lottery.methods.pickWinner().send({ from: accounts[0] });
+			assert.ok(winner);
+		});
+		it("can send money", async () => {
+			await lottery.methods.enter().send({
+				from: accounts[1],
+				value: "10000"
+			});
+			await lottery.methods.sendMoney(accounts[1]).send({ from: accounts[0] });
+			assert(true);
+		});
 	});
-	it("has deployer as manager", async () => {
-		const manager = await lottery.methods.manager().call();
-		assert.equal(manager, accounts[0]);
+	describe("Players", () => {
+		it("can pay to enter", async () => {
+			await lottery.methods.enter().send({
+				from: accounts[1],
+				value: "10000"
+			});
+		});
+		it("are allotted in the pool", async () => {
+			await lottery.methods.enter().send({
+				from: accounts[2],
+				value: "50000"
+			});
+			const player = await lottery.methods.players(0).call();
+			assert.equal(player, accounts[2]);
+		});
+		it("cannot pick winner", async () => {
+			try {
+				await lottery.methods.pickWinner().send({ from: accounts[1] });
+			} catch (err) {
+				assert(true);
+			}
+		});
+		it("cannot send money to winner", async () => {
+			try {
+				await lottery.methods.sendMoney(accounts[3]).send({ from: accounts[1] });
+			} catch (err) {
+				assert(true);
+			}
+		});
 	});
 });
