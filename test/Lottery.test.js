@@ -39,15 +39,17 @@ describe("Lottery", () => {
 		it("cannot pick winner if no player has entered", async () => {
 			try {
 				await lottery.methods.pickWinner().send({ from: accounts[0] });
+				assert(false);
 			} catch (err) {
-				assert(true);
+				assert(err);
 			}
 		});
 		it("cannot send money if no player has entered", async () => {
 			try {
 				await lottery.methods.sendMoney(accounts[3]).send({ from: accounts[0] });
+				assert(false);
 			} catch (err) {
-				assert(true);
+				assert(err);
 			}
 		});
 		it("can pick winner", async () => {
@@ -74,6 +76,17 @@ describe("Lottery", () => {
 				value: "10000"
 			});
 		});
+		it("cannot enter without minimum amount", async () => {
+			try {
+				await lottery.methods.enter().send({
+					from: accounts[1],
+					value: "1000"
+				});
+				assert(false);
+			} catch (err) {
+				assert(err);
+			}
+		});
 		it("are allotted in the pool", async () => {
 			await lottery.methods.enter().send({
 				from: accounts[2],
@@ -85,16 +98,26 @@ describe("Lottery", () => {
 		it("cannot pick winner", async () => {
 			try {
 				await lottery.methods.pickWinner().send({ from: accounts[1] });
+				assert(false);
 			} catch (err) {
-				assert(true);
+				assert(err);
 			}
 		});
 		it("cannot send money to winner", async () => {
 			try {
 				await lottery.methods.sendMoney(accounts[3]).send({ from: accounts[1] });
+				assert(false);
 			} catch (err) {
-				assert(true);
+				assert(err);
 			}
 		});
+	});
+	it("can return player list", async () => {
+		await lottery.methods.enter().send({
+			from: accounts[2],
+			value: "50000"
+		});
+		const players = await lottery.methods.getPlayers().call();
+		assert.equal(players.length, 1);
 	});
 });
